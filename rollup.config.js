@@ -166,6 +166,47 @@ const primitivesConfig = {
   ),
 }
 
+const fullConfig = {
+  ...standaloneBaseConfig,
+  input: './src/index.js',
+  output: [
+    getCJS({ file: 'dist/styled-components-full.cjs.js' }),
+    getESM({ file: 'dist/styled-components-full.es' }),
+  ],
+  external: ['react', 'prop-types'],
+  plugins: [
+    flow({
+      // needed for sourcemaps to be properly generated
+      pretty: true,
+    }),
+    sourceMaps(),
+    json(),
+    nodeResolve(),
+    babel({
+      exclude: 'node_modules/**',
+      plugins: ['external-helpers'],
+    }),
+    commonjs({
+      ignoreGlobal: true,
+      include: 'node_modules/**',
+      namedExports: {
+        'react-is': ['isValidElementType'],
+      },
+    }),
+    replace({
+      ...streamIgnore,
+      __DEV__: JSON.stringify(false), // disable flag indicating a Jest run
+      __VERSION__: JSON.stringify(pkg.version),
+      __SERVER__: JSON.stringify(false),
+      ...propTypeIgnore,
+      'process.env.NODE_ENV': JSON.stringify('production'),
+    }),
+    terser({
+      sourcemap: true,
+    }),
+  ],
+}
+
 export default [
   standaloneConfig,
   standaloneProdConfig,
@@ -173,4 +214,5 @@ export default [
   browserConfig,
   nativeConfig,
   primitivesConfig,
+  fullConfig,
 ]
